@@ -1,0 +1,48 @@
+---
+title: "infovis1"
+author: "Ricardo gore"
+date: "7/27/2018"
+output: html_document
+---
+
+```{r echo = FALSE, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r echo = TRUE}
+dir <- c("/Users/cigom/Documents/GitHub/July_2018_bioinfo/infile/")
+setwd(dir)
+x <- read.table(paste0(dir,"diffExpr.P1e-2_C1.matrix"))
+```
+And read the input file; then let's make a `head(x)` from the file:
+
+```{r echo = FALSE, results='asis'}
+x <- read.table(paste0(dir,"diffExpr.P1e-2_C1.matrix2"))
+library(knitr)
+kable(head(x))
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r x, fig.cap = "example 1", fig.align = "center", echo=TRUE}
+library(superheat)
+superheat(x,
+          # retain original order of rows/cols
+          pretty.order.rows = TRUE,
+          pretty.order.cols = TRUE,
+          row.dendrogram = TRUE,
+          left.label = "none",
+          bottom.label.text.angle = 0,
+          row.title = "Differential Expressed",
+          column.title = "Samples")
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
