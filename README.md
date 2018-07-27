@@ -11,7 +11,7 @@ Las visualizaciones de datos son inicialmente diseñadas por un humano, pero lue
 - Contar una historia
 - Transmitir un mensaje
 
-# Visualización de datos
+# Visualización de datos (outlines)
 
 Tipos de datos:
 
