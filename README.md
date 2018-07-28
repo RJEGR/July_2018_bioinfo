@@ -4,9 +4,9 @@ El término de visualización de datos y visualización de la información (usua
 
 - Trazados con la ayuda de métodos computarizados (puede tener toques personalizados); 
 - Fácil de regenerar con diferentes datos (la misma forma puede reutilizarse para representar diferentes conjuntos de datos con dimensiones o características similares);
-- A menudo estéticamente estéril (los datos no están decorados); yrelativamente rico en datos (es viable para grandes volúmenes de datos). 
+- A menudo estéticamente estéril (los datos no están decorados); y relativamente rico en datos (es viable para grandes volúmenes de datos). 
 
-Las visualizaciones de datos son inicialmente diseñadas por un humano, pero luego se dibujan algorítmicamente con un software de gráficos, gráficos o diagramas. La ventaja de este enfoque es que es relativamente simple actualizar o regenerar la visualización con más o nuevos datos. Si bien pueden mostrar grandes volúmenes de datos, las visualizaciones de información suelen ser menos estéticamente ricas que las infografías y tiene como objetivo:
+Las visualizaciones de datos son inicialmente diseñadas por un humano, pero luego se dibujan algorítmicamente con un software de gráficos o diagramas. La ventaja de este enfoque es que es relativamente simple actualizar o regenerar la visualización con más o nuevos datos. Si bien pueden mostrar grandes volúmenes de datos, las visualizaciones de información suelen ser menos estéticamente ricas que las infografías y tiene como objetivo:
 
 - Contar una historia
 - Transmitir un mensaje
@@ -45,7 +45,7 @@ Gestalt principles is about perception and reality
 
 8. Gestalt principles → junk (chart) → Data-ink-ratio (lie factor)
    - Equation:
-   - Size of the effect shown in the graph / Sise of the effect shown in the data = lie factor  
+   Size of the effect shown in the graph / Sise of the effect shown in the data = lie factor  
 
 >  Intervals 0.95 < lie factor < 1.05 
 >
