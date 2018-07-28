@@ -3,6 +3,7 @@ title: "infovis1"
 author: "Ricardo gore"
 date: "7/27/2018"
 output: html_document
+output_dir: "docs"
 ---
 
 ```{r echo = FALSE, include=FALSE}
