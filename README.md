@@ -53,3 +53,7 @@ Gestalt principles is about perception and reality
 
 9. Grammar of graphics
 10. ggplot2 and r objects
+
+Referencia:
+- Steele J., Iliinsky N. (2011), Designing Data Visualizations ; Chapter 1; O'Reilly Media, Inc. ISBN: 9781449314774
+- web: www.udacity.com (2018); Data Visualization and d3.js 
