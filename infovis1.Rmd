@@ -3,39 +3,63 @@ title: "infovis1"
 author: "Ricardo gore"
 date: "7/27/2018"
 output: html_document
-output_dir: "docs"
+# output_dir: "docs"
 ---
 
 ```{r echo = FALSE, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## R Markdown
+## Preface
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+When I started coding for biology I realize on this amazing challenge about how to tell the history from a bunch of Next Generation sequencing datasets. Visualization of information (from massive data mining in special) become in a nice part of my data scientist training.
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+## Data Visualization
+
+Please, read my outlines for the data visualization course in the the follow README file [here](https://github.com/RJEGR/July_2018_bioinfo) and deep in the knowlege of this advantage.
+
+## Trainning dataset
+
+We will use high throughput sequencing dataset from a marine non model organism exposed to hidrocarbon polutant. The libraries sequenced were acqured from undifferented (Un) and sexual differented stages ( Male and female). In this experiment time 0 and three corresponded to hidrocarbon pollutant expossition (before and after, respectivily).
+
+Libraries were preprocessing using the standar parameters within trimmomatic and the assembly were performed with trinity. Differential gene expression and annotation were perform with edgeR (an R package) and Trinotate, respectivily.
+
+The chunk-code here correspond to my workflow used in the lab. Hope you enjoy it!
+
+## Loading input files
+
+First lets 
 
 ```{r echo = TRUE}
 dir <- c("/Users/cigom/Documents/GitHub/July_2018_bioinfo/infile/")
 setwd(dir)
-x <- read.table(paste0(dir,"diffExpr.P1e-2_C1.matrix"))
+# x <- read.table(paste0(dir,"diffExpr.P1e-2_C1.matrix"))
 ```
+
 And read the input file; then let's make a `head(x)` from the file:
 
 ```{r echo = FALSE, results='asis'}
 x <- read.table(paste0(dir,"diffExpr.P1e-2_C1.matrix2"))
-library(knitr)
-kable(head(x))
+knitr::kable(head(x))
 ```
 
-## Including Plots
+Let's log2 transform the data
+```{r data, echo = FALSE}
+data = x # restore before doing various data transformations
+data = log2(data+1)
+data = as.matrix(data) # convert to matrix
+data = t(scale(t(data), scale=F)) # Centering rows
+```
 
-You can also embed plots, for example:
+## Differential Expression
 
-```{r x, fig.cap = "example 1", fig.align = "center", echo=TRUE}
+Continue ..:
+
+### Heatmap
+
+```{r, fig.cap = "example 1", fig.align = "center", echo=TRUE}
 library(superheat)
-superheat(x,
+superheat(data,
           # retain original order of rows/cols
           pretty.order.rows = TRUE,
           pretty.order.cols = TRUE,
@@ -46,4 +70,274 @@ superheat(x,
           column.title = "Samples")
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+Continue...
+
+###  Volcano plot
+
+After process the differential gene expression analysis (Ex. running the `run_DE_analysis.pl` from [Trinity framework](https://github.com/trinityrnaseq/trinityrnaseq/wiki/Trinity-Differential-Expression)) we can improve the data visualization as follow:
+
+```{r DE, echo = FALSE}
+DE <- read.table(paste0(dir,"RSEM.isoform.counts.matrix.Female_vs_Undiff.edgeR.DE_results"))
+
+```
+
+
+```{r p, fig.cap = "This is a Volcano plot", fig.align = "center", echo = FALSE}
+library(ggplot2)
+library(scales)
+
+p <- ggplot(DE, aes(x=logFC, y=-log10(PValue))) + geom_point()
+p
+```
+
+Let's label by Fold Change (up/down) rate and significancy by the follow condition:
+- log Fold Change (logFC) > abs(2) 
+- False Discovery Rate (FDR) < 0.05 
+- Both statements: FDR < 0.05 and logFC > abs(2) 
+
+
+```{r, fig.cap = "Volcano; Color and fill", fig.align = "center"}
+# logf>abs(2) fdr < 0.05 fdr < 0.05 and logfc> abs(2)
+DE$Sig <- "Non Sig or basal"
+DE$Sig[(abs(DE$logFC) > 2)] <- "logFC"
+DE$Sig[(DE$FDR<0.05) & (abs(DE$logFC)>2)] <- "logFC_FDR"
+
+p <- ggplot(DE, aes(x=logFC, y=-log10(PValue))) +
+    geom_point(aes(color = Sig)) + theme_classic() +
+    # RColorBrewer::display.brewer.all()
+    scale_color_brewer()
+p
+```
+
+Add lines and axis name:
+
+```{r p1, echp = FALSE}
+p1 <- p +
+        geom_vline(xintercept = 0) +
+        geom_hline(yintercept = 0) +
+        geom_hline(yintercept = -log10(0.0001), linetype = "dashed") +
+        geom_vline(xintercept = c(-2, 2), linetype = "dashed")
+```
+
+And also let's rename x and y axis using backquote macros:
+
+```{r, fig.cap = "Volcano lines and axis labeled", fig.align = "center" }
+p1 + xlab(bquote(~Log[2]~ "fold change")) + ylab(bquote(~-Log[10]~italic(P)))
+# p2 <- p + xlab("Fold change (log2)") + ylab("P-Value")
+```
+
+Finally, let's label the dots from the scatter:
+
+```{r p2, fig.cap = "Volcano labels", fig.align = "center"}
+library(ggrepel)
+maxlab <- max(-log10(DE$PValue)) - 1 # select the points below the highest -log10(PValue) value to label
+
+p2 <-  p1 + geom_text_repel(
+          data = subset(DE, -log10(PValue) > maxlab),
+          aes(label = Sig),
+          size = 2.5,
+          box.padding = unit(0.2, "lines"),
+          point.padding = unit(0.2, "lines") 
+  )
+```
+
+```{r, echo = FALSE}
+# ref https://github.com/tidyverse/ggplot2/wiki/Share-a-legend-between-two-ggplot2-graphs
+grid_arrange_shared_legend <- function(..., ncol = length(list(...)), nrow = 1, position = c("bottom", "right")) {
+
+  plots <- list(...)
+  position <- match.arg(position)
+  g <- ggplotGrob(plots[[1]] + theme(legend.position = position))$grobs
+  legend <- g[[which(sapply(g, function(x) x$name) == "guide-box")]]
+  lheight <- sum(legend$height)
+  lwidth <- sum(legend$width)
+  gl <- lapply(plots, function(x) x + theme(legend.position="none"))
+  gl <- c(gl, ncol = ncol, nrow = nrow)
+
+  combined <- switch(position,
+                     "bottom" = arrangeGrob(do.call(arrangeGrob, gl),
+                                            legend,
+                                            ncol = 1,
+                                            heights = unit.c(unit(1, "npc") - lheight, lheight)),
+                     "right" = arrangeGrob(do.call(arrangeGrob, gl),
+                                           legend,
+                                           ncol = 2,
+                                           widths = unit.c(unit(1, "npc") - lwidth, lwidth)))
+
+  grid.newpage()
+  grid.draw(combined)
+
+  # return gtable invisibly
+  invisible(combined)
+
+}
+```
+
+Finally, let's compare the layouts:
+
+```{r,  fig.cap = "Volcano comparison", fig.align = "center"}
+library(gridExtra)
+library(grid)
+grid_arrange_shared_legend(p,p1,p2, ncol = 3)
+```
+
+
+## Functional and enrichment annotation
+
+After assembly denovo or guided transcriptome is common to map each contig to a reference in order to annotate the potential source of each transcript. In this view, blast2go is the average tool used by users to perform this analysis nevertheles blast2go is a non free tool. In spite of, [Trinotate](https://github.com/Trinotate/Trinotate.github.io/wiki) is a useful free-framework to this purpose. Trinotate makes use of a number of different well referenced methods for functional annotation including homology search to known sequence data (BLAST+/SwissProt), protein domain identification (HMMER/PFAM), protein signal peptide and transmembrane domain prediction (signalP/tmHMM), and leveraging various annotation databases (eggNOG/GO/Kegg databases).
+
+In personal experience, trinotate had resulted in better performance (such less computational time) than the blast2go counterpart and useful to automatically annotate one workflow at time.
+
+In addition, [trinotateR](https://github.com/cstubben/trinotateR) is package developed by **Chris Stubben** with useful functions to "wrangling" the tab-delimited `Trinotate.xls` result.
+
+```{r y, echo=TRUE}
+library(trinotateR)
+y <- read_trinotate(paste0(dir,"Trinotate.xls"))
+knitr::kable(summary_trinotate(y))
+
+```
+
+Most of the annotations contain mutliple hits in a backtick-delimited list and each hit contains multiple fields in a caret-delimited list. For example, the second Pfam annotation below contains two hits and each hit contains a pfam id, symbol, name, alignment and e-value. The `split_pfam` functions splits multiple hits and fields, so the second Pfam annotation is now printed in rows 2 and 3 below.
+
+
+```{r y1, echo =TRUE}
+y1 <- split_pfam(y)
+head(y1,3)[,c(2,4:7)]
+```
+
+Finally, the `summary_pfam` lists both, the number of unique Pfam identifiers and the total  genes, transcripts and proteins with a Pfam annotation.
+
+```{r y2, echo = TRUE}
+y2 <- summary_pfam(y1)
+head(y2[order(-y2$transcripts),])
+```
+
+The summary table also includes a count attribute with the number of unique genes, transcripts and proteins with a Pfam annotation, as well as the total number of annotations. In this example, there are 33,721 unique transcripts with a Pfam annotation and 56,642 total annotations to transcripts (since those may have more than one Pfam annotation).
+
+```{r c, echo = TRUE}
+c <- attr(y2, "count")
+print(c)
+```
+
+Load the DataTables library to display and search within all the available genes/transcripts annotations.
+
+```{r z, echo = TRUE}
+library(DT)
+z <- data.frame(y2)
+z$pfam <- paste0('<a href="http://pfam.xfam.org/family/', z$pfam, '">', z$pfam, '</a>')
+datatable(z , escape=1, options = list( pageLength = 10 ) )
+#renderDataTable(z , escape=1, options = list( pageLength = 10 ), server = TRUE )
+```
+
+Try `trinotateR` to get the Gene Ontology annotation. A GO annotation is a statement about the function of a particular gene. Each GO annotation consists of an association between a gene and a GO term. Together, these statements comprise a “snapshot” of current biological knowledge. The GO describes function with respect to three aspects: molecular function (molecular-level activities performed by gene products), cellular component (the locations relative to cellular structures in which a gene product performs a function), and biological process (the larger processes, or ‘biological programs’ accomplished by multiple molecular activities) 
+
+> Ref: http://www.geneontology.org/page/ontology-documentation.
+
+
+```{r go, echo = TRUE}
+go <- split_GO(y)
+gos <- summary_GO(go)
+head(gos[order(-gos$transcripts),])
+```
+
+And also determine the counts
+```{r cgo, echo = TRUE}
+cgo <- attr(gos, "count")
+print(cgo)
+```
+
+Using only the translated transcripts to get the differential Expressed annotations:
+```{r got, echo = FALSE}
+got <- na.omit(go, cols = "protein")
+x$transcript <- rownames(x)
+m <- merge(got, x, suffix = c("transcript"), all=FALSE)
+m <- m[order(m$transcript),c(1,4,5:12)]
+# knitr::kable(head(m))
+datatable(m , escape=1, options = list( pageLength = 10 ) )
+```
+
+
+Let's draw some visualizations from the annotation enrichment throught a the transcriptome assembly:
+
+```{r plotgos, out.width='\\textwidth', fig.width = 8, fig.height = 8, fig.cap = "Gene Ontology enrichment plot (top 80 transcripts)", fig.align = "center"}
+
+library(ggpubr)
+plotgos <- head(gos[order(-gos$transcripts),], 80)
+ggbarplot(plotgos, "name", "transcripts",
+          fill = "ontology", 
+          color = "ontology",
+   palette = c("#00AFBB", "#E7B800", "#FC4E07")) +
+   theme(axis.text.x = element_text(angle = 90, hjust = 1, size = 7))
+   # facet_grid(ontology ~ .,) + theme(#strip.text.x = element_blank(), 
+   #                              axis.text.x = element_text(angle = 90, hjust = 1))
+
+```
+
+
+
+And separate the ontology annotation for further analysis:
+
+```{r, echo = FALSE}
+knitr::kable(table(gos$ontology))
+```
+
+...
+
+```{r}
+MF <- gos[gos$ontology=="molecular_function",]
+CC <- gos[gos$ontology=="cellular_component",]
+BP <- gos[gos$ontology=="biological_process",]
+```
+
+## Semantic similarity (of GO terms)
+
+Determine the similarity of two GO terms based on the annotation statistics of their common ancestor terms by computing semantic similarity among GO terms, sets of GO terms, gene products, and gene clusters, providing different methods than **measure** the information content (IC). To details please read the [Wang's](https://academic.oup.com/bioinformatics/article/26/7/976/213143) paper published in Oxford.
+
+
+First, build annotation data needed by GOSemSim via `godata` function. Based in figure from Gene Ontology Enrichment, we could focus on the Cellular component (CC) terms. install the human database by `source("https://bioconductor.org/biocLite.R"); biocLite("org.Hs.eg.db"); library(org.Hs.eg.db)` (~ 74.3 MB)
+
+```{r, echo = FALSE}
+library(GOSemSim)
+hsGO <- godata('org.Hs.eg.db', ont="CC", computeIC=FALSE)
+go <- as.vector(CC$go)
+go1 <- sample(go, 20)
+go2 <- sample(go, 20)
+gosim <- mgoSim(go1, go2, semData=hsGO, measure="Wang", combine=NULL)
+```
+
+And visualize the similarity of the GO term.
+
+```{r, plotgos, out.width='\\textwidth', fig.width = 8, fig.height = 8}
+superheat(gosim,
+          # retain original order of rows/cols
+          pretty.order.rows = TRUE,
+          pretty.order.cols = TRUE,
+          #left.label = "none",
+          bottom.label.text.angle = 90,
+          row.title = "Sample 1",
+          column.title = "Sample 2"
+          )
+```
+
+<!-- # bottom.label = "none" -->
+<!-- gosim2 <- as.data.frame(gosim) -->
+<!-- db <- rbind(CC[CC$go %in% rownames(gosim2), c(1,3)], CC[CC$go %in% colnames(gosim2), c(1,3)]) -->
+
+## Taxonomic tree:
+
+The most recent version can be installed from Github
+```{r, echo = FALSE}
+# devtools::install_github("ropensci/taxa")
+# devtools::install_github("grunwaldlab/metacoder")
+library(metacoder)
+```
+
+
+Melting files
+# ```{r echo = FALSE}
+# x <- melt(z, id.vars = c("Temperature", "Condition"),
+#           #measure.vars = c("Hif1α", "Hsp70", "Hsp90", "GPx", "cMnSOD", "Na-K ATPasa"),
+#           value.name= "expression", variable_name = "Name")
+# 
+# colnames(x)[c(3:4)] <- c("Gene", "Expression")
