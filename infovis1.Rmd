@@ -1,7 +1,7 @@
 ---
-title: "infovis1"
+title: "Data Visualization"
 author: "Ricardo gore"
-date: "7/27/2018"
+date: "Thuesday 7/31/2018"
 output: html_document
 # output_dir: "docs"
 ---
@@ -10,13 +10,12 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+Please, read my outlines for the data visualization course in the the follow README file [here](https://github.com/RJEGR/July_2018_bioinfo) and deep in the knowlege of this advantage.
+
 ## Preface
 
 When I started coding for biology I realize on this amazing challenge about how to tell the history from a bunch of Next Generation sequencing datasets. Visualization of information (from massive data mining in special) become in a nice part of my data scientist training.
 
-## Data Visualization
-
-Please, read my outlines for the data visualization course in the the follow README file [here](https://github.com/RJEGR/July_2018_bioinfo) and deep in the knowlege of this advantage.
 
 ## Trainning dataset
 
@@ -25,6 +24,19 @@ We will use high throughput sequencing dataset from a marine non model organism 
 Libraries were preprocessing using the standar parameters within trimmomatic and the assembly were performed with trinity. Differential gene expression and annotation were perform with edgeR (an R package) and Trinotate, respectivily.
 
 The chunk-code here correspond to my workflow used in the lab. Hope you enjoy it!
+
+## Required package:
+
+```{r}
+# library(devtools)
+# devtools::install_github("rlbarter/superheat")
+# install_github("cstubben/trinotateR")
+# devtools::install_github("ropensci/taxa")
+# devtools::install_github("grunwaldlab/metacoder")
+# if (!require("DT")) install.packages('DT')
+# source("https://bioconductor.org/biocLite.R"); biocLite("org.Hs.eg.db"); (~ 74.3 MB)
+
+```
 
 ## Loading input files
 
@@ -44,18 +56,16 @@ knitr::kable(head(x))
 ```
 
 Let's log2 transform the data
-```{r data, echo = FALSE}
+```{r data, echo = TRUE}
 data = x # restore before doing various data transformations
 data = log2(data+1)
 data = as.matrix(data) # convert to matrix
 data = t(scale(t(data), scale=F)) # Centering rows
 ```
 
-## Differential Expression
 
-Continue ..:
-
-### Heatmap
+### Heatmap from Differential gene Expression
+Using [superheat](https://rlbarter.github.io/superheat/index.html)
 
 ```{r, fig.cap = "example 1", fig.align = "center", echo=TRUE}
 library(superheat)
@@ -71,19 +81,17 @@ superheat(data,
 ```
 
 
-Continue...
-
 ###  Volcano plot
 
 After process the differential gene expression analysis (Ex. running the `run_DE_analysis.pl` from [Trinity framework](https://github.com/trinityrnaseq/trinityrnaseq/wiki/Trinity-Differential-Expression)) we can improve the data visualization as follow:
 
-```{r DE, echo = FALSE}
+```{r DE, echo = TRUE}
 DE <- read.table(paste0(dir,"RSEM.isoform.counts.matrix.Female_vs_Undiff.edgeR.DE_results"))
 
 ```
 
 
-```{r p, fig.cap = "This is a Volcano plot", fig.align = "center", echo = FALSE}
+```{r p, fig.cap = "This is a Volcano plot", fig.align = "center", echo = TRUE}
 library(ggplot2)
 library(scales)
 
@@ -92,9 +100,10 @@ p
 ```
 
 Let's label by Fold Change (up/down) rate and significancy by the follow condition:
-- log Fold Change (logFC) > abs(2) 
-- False Discovery Rate (FDR) < 0.05 
-- Both statements: FDR < 0.05 and logFC > abs(2) 
+
+* log Fold Change (logFC) > abs(2) 
+* False Discovery Rate (FDR) < 0.05 
+* Both statements: FDR < 0.05 and logFC > abs(2) 
 
 
 ```{r, fig.cap = "Volcano; Color and fill", fig.align = "center"}
@@ -176,7 +185,7 @@ grid_arrange_shared_legend <- function(..., ncol = length(list(...)), nrow = 1, 
 
 Finally, let's compare the layouts:
 
-```{r,  fig.cap = "Volcano comparison", fig.align = "center"}
+```{r,  fig.cap = "Volcano comparison", fig.align = "center", out.width='\\textwidth', fig.width = 9, fig.height = 5}
 library(gridExtra)
 library(grid)
 grid_arrange_shared_legend(p,p1,p2, ncol = 3)
@@ -210,7 +219,7 @@ Finally, the `summary_pfam` lists both, the number of unique Pfam identifiers an
 
 ```{r y2, echo = TRUE}
 y2 <- summary_pfam(y1)
-head(y2[order(-y2$transcripts),])
+knitr::kable(head(y2[order(-y2$transcripts),]))
 ```
 
 The summary table also includes a count attribute with the number of unique genes, transcripts and proteins with a Pfam annotation, as well as the total number of annotations. In this example, there are 33,721 unique transcripts with a Pfam annotation and 56,642 total annotations to transcripts (since those may have more than one Pfam annotation).
@@ -220,19 +229,23 @@ c <- attr(y2, "count")
 print(c)
 ```
 
-Load the DataTables library to display and search within all the available genes/transcripts annotations.
+Implement [*datatable*](https://rstudio.github.io/DT/) to present interactive data-table: from all the available genes/transcripts annotations.
 
-```{r z, echo = TRUE}
-library(DT)
+```{r z, echo = FALSE}
+
 z <- data.frame(y2)
 z$pfam <- paste0('<a href="http://pfam.xfam.org/family/', z$pfam, '">', z$pfam, '</a>')
+
+library(DT)
 datatable(z , escape=1, options = list( pageLength = 10 ) )
 #renderDataTable(z , escape=1, options = list( pageLength = 10 ), server = TRUE )
 ```
 
-Try `trinotateR` to get the Gene Ontology annotation. A GO annotation is a statement about the function of a particular gene. Each GO annotation consists of an association between a gene and a GO term. Together, these statements comprise a “snapshot” of current biological knowledge. The GO describes function with respect to three aspects: molecular function (molecular-level activities performed by gene products), cellular component (the locations relative to cellular structures in which a gene product performs a function), and biological process (the larger processes, or ‘biological programs’ accomplished by multiple molecular activities) 
+## Using `trinotateR` to get the Gene Ontology annotation. 
 
-> Ref: http://www.geneontology.org/page/ontology-documentation.
+A GO annotation is a statement about the function of a particular gene. Each GO annotation consists of an association between a gene and a GO term. Together, these statements comprise a “snapshot” of current biological knowledge. The GO describes function with respect to three aspects: molecular function (molecular-level activities performed by gene products), cellular component (the locations relative to cellular structures in which a gene product performs a function), and biological process (the larger processes, or ‘biological programs’ accomplished by multiple molecular activities) 
+
+> Reference: http://www.geneontology.org/page/ontology-documentation, 2018
 
 
 ```{r go, echo = TRUE}
@@ -248,19 +261,22 @@ print(cgo)
 ```
 
 Using only the translated transcripts to get the differential Expressed annotations:
-```{r got, echo = FALSE}
+```{r got, echo = TRUE}
 got <- na.omit(go, cols = "protein")
 x$transcript <- rownames(x)
 m <- merge(got, x, suffix = c("transcript"), all=FALSE)
 m <- m[order(m$transcript),c(1,4,5:12)]
-# knitr::kable(head(m))
+
+library(DT)
 datatable(m , escape=1, options = list( pageLength = 10 ) )
+
 ```
+
 
 
 Let's draw some visualizations from the annotation enrichment throught a the transcriptome assembly:
 
-```{r plotgos, out.width='\\textwidth', fig.width = 8, fig.height = 8, fig.cap = "Gene Ontology enrichment plot (top 80 transcripts)", fig.align = "center"}
+```{r plotgos, out.width='\\textwidth', fig.width = 7, fig.height = 7, fig.cap = "Gene Ontology enrichment plot (top 80 transcripts)", fig.align = "center"}
 
 library(ggpubr)
 plotgos <- head(gos[order(-gos$transcripts),], 80)
@@ -282,7 +298,7 @@ And separate the ontology annotation for further analysis:
 knitr::kable(table(gos$ontology))
 ```
 
-...
+You can separete the go terms to perfom further test:
 
 ```{r}
 MF <- gos[gos$ontology=="molecular_function",]
@@ -295,20 +311,20 @@ BP <- gos[gos$ontology=="biological_process",]
 Determine the similarity of two GO terms based on the annotation statistics of their common ancestor terms by computing semantic similarity among GO terms, sets of GO terms, gene products, and gene clusters, providing different methods than **measure** the information content (IC). To details please read the [Wang's](https://academic.oup.com/bioinformatics/article/26/7/976/213143) paper published in Oxford.
 
 
-First, build annotation data needed by GOSemSim via `godata` function. Based in figure from Gene Ontology Enrichment, we could focus on the Cellular component (CC) terms. install the human database by `source("https://bioconductor.org/biocLite.R"); biocLite("org.Hs.eg.db"); library(org.Hs.eg.db)` (~ 74.3 MB)
+First, build annotation data needed by GOSemSim via `godata` function. Based in figure from Gene Ontology Enrichment, we could focus on the Cellular component (CC) terms.
 
-```{r, echo = FALSE}
-library(GOSemSim)
-hsGO <- godata('org.Hs.eg.db', ont="CC", computeIC=FALSE)
+```{r}
+library(org.Hs.eg.db)
+hsGO <- GOSemSim::godata('org.Hs.eg.db', ont="CC", computeIC=FALSE)
 go <- as.vector(CC$go)
 go1 <- sample(go, 20)
 go2 <- sample(go, 20)
-gosim <- mgoSim(go1, go2, semData=hsGO, measure="Wang", combine=NULL)
+gosim <- GOSemSim::mgoSim(go1, go2, semData=hsGO, measure="Wang", combine=NULL)
 ```
 
 And visualize the similarity of the GO term.
 
-```{r, plotgos, out.width='\\textwidth', fig.width = 8, fig.height = 8}
+```{r, out.width='\\textwidth', fig.width = 7, fig.height = 7}
 superheat(gosim,
           # retain original order of rows/cols
           pretty.order.rows = TRUE,
@@ -316,28 +332,190 @@ superheat(gosim,
           #left.label = "none",
           bottom.label.text.angle = 90,
           row.title = "Sample 1",
-          column.title = "Sample 2"
+          column.title = "Sample 2",
+          bottom.label.text.size = 4,
+          left.label.text.size = 4
           )
+```
+
+Finally detache (unload) `org.Hs.eg.db` package.
+
+```{r, echo = TRUE}
+detach(package:org.Hs.eg.db, unload = TRUE)
 ```
 
 <!-- # bottom.label = "none" -->
 <!-- gosim2 <- as.data.frame(gosim) -->
 <!-- db <- rbind(CC[CC$go %in% rownames(gosim2), c(1,3)], CC[CC$go %in% colnames(gosim2), c(1,3)]) -->
 
-## Taxonomic tree:
+## Blast hits annotation
 
-The most recent version can be installed from Github
+From the annotation, lets use the blastx result in order to get the lineage from proteins anntotated.
+
 ```{r, echo = FALSE}
-# devtools::install_github("ropensci/taxa")
-# devtools::install_github("grunwaldlab/metacoder")
-library(metacoder)
+split_blast2 <- function (x, hit = "sprot_Top_BLASTX_hit") 
+{
+  y <- x[!is.na(get(hit)), .(get(hit), gene_id, transcript_id, 
+                             prot_id)]
+  z <- strsplit(y$V1, "`")
+  n <- sapply(z, length)
+  z <- strsplit(unlist(z), "\\^")
+  if (any(sapply(z, "[", 1) != sapply(z, "[", 2))) 
+    print("WARNING: check different values in columns 1 and 2")
+  NAME <- gsub("^RecName: Full=", "", sapply(z, "[", 6))
+  NAME <- gsub("SubName: Full=", "", NAME)
+  NAME <- gsub(";$", "", NAME)
+  NAME <- gsub(" \\{[^}]+}", "", NAME)
+  x1 <- data.frame(gene = rep(y$gene_id, n), transcript = rep(y$transcript_id, 
+                                                              n), protein = rep(gsub(".*\\|", "", y$prot_id), n), uniprot = sapply(z, 
+                                                                                                                                   "[", 1), align = sapply(z, "[", 3), identity = as.numeric(gsub("%ID", 
+                                                                                                                                                                                                  "", sapply(z, "[", 4))), evalue = as.numeric(gsub("E:", 
+                                                                                                                                                                                                                                                    "", sapply(z, "[", 5))), name = NAME, lineage = sapply(z, 
+                                                                                                                                                                                                                                                                                                           "[", 7), domain = gsub("; .*", "", sapply(z, "[", 7)), 
+                   genus = gsub(".*; ", "", sapply(z, "[", 7)), stringsAsFactors = FALSE)
+  message(nrow(x1), " ", hit, " annotations")
+  data.table(x1)
+}
 ```
 
 
-Melting files
-# ```{r echo = FALSE}
-# x <- melt(z, id.vars = c("Temperature", "Condition"),
-#           #measure.vars = c("Hif1α", "Hsp70", "Hsp90", "GPx", "cMnSOD", "Na-K ATPasa"),
-#           value.name= "expression", variable_name = "Name")
-# 
-# colnames(x)[c(3:4)] <- c("Gene", "Expression")
+
+```{r, echo = TRUE}
+blast <- split_blast2(y)
+blast2 <- summary_blast(blast)
+knitr::kable(head(blast2[order(-blast2$transcripts),]))
+```
+
+
+## Taxonomic tree:
+Visualizing hierarchical information 
+### Metacoder [*Metacoder*](https://grunwaldlab.github.io/metacoder_documentation/vignettes--02--plotting_taxonomic_data.html). 
+
+Let's subset the virus lineage annotation:
+
+```{r}
+vs <- blast[blast$domain == "Viruses",]
+list <- vs$lineage
+```
+
+And plot ...
+
+```{r obj, out.width='\\textwidth', fig.width = 7, fig.height = 7, fig.align = "center", fig.cap = "Tree example using metacoder", echo = TRUE}
+
+library(metacoder)
+library(RColorBrewer)
+obj <- parse_tax_data(vs, class_cols = "lineage", class_sep = ";")
+display.brewer.pal(n = 5, name = 'Set3') # Hexadecimal color specification
+heat_tree(obj, 
+          node_label = taxon_names,
+          node_size = n_obs,
+          node_color = n_obs,
+          #edge_color = "grey",
+          node_color_range = brewer.pal(n = 10, name = "Oranges"))
+```
+
+Which annotation could be true, let's show the identity ?
+
+```{r, out.width='\\textwidth', fig.width = 5, fig.height = 5, fig.align = "center", fig.cap = "Tree example 2; labeling by identity", echo = TRUE}
+heat_tree(obj, 
+          edge_label = taxon_names,
+          edge_label_size = 0.1,
+          node_color = identity,
+          edge_color = "grey",
+          node_color_range = brewer.pal(n = 10, name = "Oranges"),
+          node_size_axis_label = "n_obs",
+          node_color_axis_label = "Identity")
+```
+
+### [*ggtree*]()
+The ggtree is designed by extending the ggplot2 (Wickham 2009) package. It is based on the grammar of graphics and takes all the good parts of ggplot2. *ggtree* supports several layouts, including rectangular, slanted, circular and fan for phylogram and cladogram, equal_angle and daylight for unrooted layout, time-scaled and two dimentional phylogenies.
+
+> Reference: Yu et al. 2017, https://besjournals.onlinelibrary.wiley.com/doi/abs/10.1111/2041-210X.12628
+
+```{r, echo = TRUE}
+tbl <- head(vs[order(-vs$identity),], 50)
+tbl <- tbl[!duplicated(tbl$transcript),] # remove duplicates annotations
+write.table(tbl$transcript, file = "virus.list", quote = FALSE, col.names = FALSE, row.names = FALSE)
+```
+
+
+<!-- python ~/Documents/GitHub/IIIBSS/Final_Project/code/get.seqs.py ./infile/virus.list ./Trinity.fasta virus.fasta && awk '/^>/{print $1; next}{print}' < virus.fasta > virus.fst -->
+
+Run in clustalo web-service and input again in r the tree
+this is a Neighbour-joining tree without distance corrections.
+
+```{r, echo = TRUE}
+tree <- treeio::read.newick(paste0(dir,"virus.tree.corrected.txt"))
+```
+
+And plot
+
+```{r, echo = TRUE, out.width='\\textwidth', fig.width = 10, fig.height = 7, fig.align = "center", fig.cap = "ggtree; using different layouts"}
+library(ggtree)
+multiplot(
+        ggtree(tree, branch.length = "none") + geom_treescale(width=0.4),
+        ggtree(tree, branch.length='none', layout="daylight") + geom_treescale(width=0.4) + geom_nodepoint(),
+        ggtree(tree, branch.length='none', layout='circular') + geom_treescale(width=0.4),
+        ncol=3,labels = LETTERS[1:3])
+
+```
+Then
+
+```{r, echo = TRUE}
+p <-  ggtree(tree, branch.length='none', layout='circular') + geom_treescale(width=0.4) +
+      geom_nodepoint(color="#b5e521", alpha=1/4, size=4) 
+```
+
+Modify tips and node geometry
+
+```{r, echo = TRUE, out.width='\\textwidth', fig.width = 10, fig.height = 7, fig.align = "center", fig.cap = "ggtree; using different layouts"}
+multiplot(# add node points
+        p + geom_nodepoint(),
+        # add tip points
+        p + geom_tippoint(),
+        # Label the tips
+        p + geom_tiplab(),
+        ncol=3,labels = LETTERS[1:3])
+```
+
+Use annotation info to merge within object (ie. tree and dataframe)
+
+```{r, echo = TRUE, out.width='\\textwidth', fig.width = 9, fig.height = 6, fig.align = "center", fig.cap = "ggtree; labeling tree based on data-frame" }
+d <- p + geom_nodepoint()
+
+tbl <- tbl[,-c(1)]
+colnames(tbl)[1] <- "label"
+tbl$genus <- gsub("unclassified ", "", tbl$genus)
+
+
+t1 <- d %<+% tbl + 
+    geom_point(aes(color=genus), size=5, alpha=.5, na.rm = TRUE) +  theme(legend.position="bottom")
+
+t2 <- p %<+% tbl + 
+    geom_tiplab(size=2.5, aes(label=paste0('italic(', uniprot, ')')), parse=TRUE)
+
+multiplot(t1, t2, ncol=2)
+
+```
+
+
+## Final words
+Just enjoy the course!
+
+
+
+<!-- ``` {sh}    -->
+<!-- after running let docker the 	`simple_phylogeny_lwp.pl` -->
+
+<!-- docker run --rm -it ebiwp/webservice-clients simple_phylogeny_lwp.pl --help -->
+
+<!-- docker run --rm -it ebiwp/webservice-clients simple_phylogeny_lwp.pl --kimura on --email rgomez@cicese.edu.mx  virus.fsa.clustal_num -->
+<!-- ``` -->
+
+<!-- Melting files -->
+<!-- # ```{r echo = FALSE} -->
+<!-- # x <- melt(z, id.vars = c("Temperature", "Condition"), -->
+<!-- #           #measure.vars = c("Hif1α", "Hsp70", "Hsp90", "GPx", "cMnSOD", "Na-K ATPasa"), -->
+<!-- #           value.name= "expression", variable_name = "Name") -->
+<!-- #  -->
+<!-- # colnames(x)[c(3:4)] <- c("Gene", "Expression") -->
