@@ -1,10 +1,10 @@
 ---
 title: "Data Visualization"
 author: "Ricardo gore"
-date: "Thuesday 7/31/2018"
-output:
-  html_document: default
-output_dir: ./docs
+date: "`r format(Sys.Date())`"
+#output: github_document
+html_document: default
+#output_dir: ./docs 
 ---
 
 ```{r echo = FALSE, include=FALSE}
