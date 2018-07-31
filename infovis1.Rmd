@@ -11,7 +11,7 @@ html_document: default
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-Please, read my outlines for the data visualization course in the the follow  [README file (here)](https://github.com/RJEGR/July_2018_bioinfo) and delves into learning about data visualization.
+Please, read my outlines for the data visualization course in the the follow  [README file here](https://github.com/RJEGR/July_2018_bioinfo) and delves into learning about data visualization.
 
 ## Preface
 
@@ -99,7 +99,6 @@ superheat(data,
           pretty.order.cols = TRUE,
           row.dendrogram = TRUE,
           left.label = "none",
-          bottom.label.text.angle = 0,
           row.title = "Differential Expressed",
           column.title = "Factor", 
           membership.cols = factor)
@@ -502,7 +501,7 @@ tree <- treeio::read.newick(paste0(dir,"virus.tree.corrected.txt"))
 
 And plot
 
-```{r, echo = TRUE, out.width='\\textwidth', fig.width = 6, fig.height = 6, fig.align = "center", fig.cap = "ggtree; using different layouts"}
+```{r, echo = TRUE, out.width='\\textwidth', fig.width = 10, fig.height = 7, fig.align = "center", fig.cap = "ggtree; using different layouts"}
 library(ggtree)
 multiplot(
         ggtree(tree, branch.length = "none") + geom_treescale(width=0.4),
