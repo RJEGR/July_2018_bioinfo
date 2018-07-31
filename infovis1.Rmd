@@ -3,7 +3,7 @@ title: "Data Visualization"
 author: "Ricardo gore"
 date: "Thuesday 7/31/2018"
 output: html_document
-# output_dir: "docs"
+output_dir: "docs"
 ---
 
 ```{r echo = FALSE, include=FALSE}
@@ -35,6 +35,7 @@ The chunk-code here correspond to my workflow used in the lab. Hope you enjoy it
 # devtools::install_github("grunwaldlab/metacoder")
 # if (!require("DT")) install.packages('DT')
 # source("https://bioconductor.org/biocLite.R"); biocLite("org.Hs.eg.db"); (~ 74.3 MB)
+# biocLite("ggtree")
 
 ```
 
@@ -450,7 +451,7 @@ tree <- treeio::read.newick(paste0(dir,"virus.tree.corrected.txt"))
 
 And plot
 
-```{r, echo = TRUE, out.width='\\textwidth', fig.width = 10, fig.height = 7, fig.align = "center", fig.cap = "ggtree; using different layouts"}
+```{r, echo = TRUE, out.width='\\textwidth', fig.width = 8, fig.height = 6, fig.align = "center", fig.cap = "ggtree; using different layouts"}
 library(ggtree)
 multiplot(
         ggtree(tree, branch.length = "none") + geom_treescale(width=0.4),
@@ -459,7 +460,8 @@ multiplot(
         ncol=3,labels = LETTERS[1:3])
 
 ```
-Then
+
+Then,
 
 ```{r, echo = TRUE}
 p <-  ggtree(tree, branch.length='none', layout='circular') + geom_treescale(width=0.4) +
