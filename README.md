@@ -97,9 +97,9 @@ Referencia de esta sección:
 
 
 
-#### Start coding the chunk as the follow R documentation: http://rpubs.com/Ricardogore/408026
+#### Start coding the chunk as the follow [R documentation here](http://rpubs.com/Ricardogore/408026)
 
-Slides from the course here:  [July_2018_bioinfo](https://github.com/RJEGR/July_2018_bioinfo)/[docs](https://github.com/RJEGR/July_2018_bioinfo/tree/master/docs)/**Visualización de datos_intro.pdf**
+Slides from the course here:  [docs](https://github.com/RJEGR/July_2018_bioinfo/tree/master/docs)/**Visualización de datos_intro.pdf**
 
 
 

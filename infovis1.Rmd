@@ -87,8 +87,23 @@ superheat(data,
           bottom.label.text.angle = 0,
           row.title = "Differential Expressed",
           column.title = "Samples")
-```
 
+```
+Also use the option `membership.cols` to group the superheat accordint to any factor, for example: `factor <- c(rep("Female",2), rep("Male",2), rep("Undiff",2))` 
+
+```{r, fig.cap = "example 2", fig.align = "center", echo=TRUE}
+factor <- c(rep("Female",2), rep("Male",2), rep("Undiff",2))
+superheat(data,
+          # retain original order of rows/cols
+          pretty.order.rows = TRUE,
+          pretty.order.cols = TRUE,
+          row.dendrogram = TRUE,
+          left.label = "none",
+          bottom.label.text.angle = 0,
+          row.title = "Differential Expressed",
+          column.title = "Factor", 
+          membership.cols = factor)
+```
 
 ###  Volcano plot
 
@@ -358,7 +373,7 @@ detach(package:org.Hs.eg.db, unload = TRUE)
 
 ## Blast hits annotation
 
-From the annotation, lets use the blastx result in order to get the lineage from proteins anntotated.
+From the annotation, lets use the blastx result in order to get the lineage from proteins anntotated using a modified function from trinotateR
 
 ```{r, echo = TRUE}
 split_blast2 <- function (x, hit = "sprot_Top_BLASTX_hit") 
@@ -421,6 +436,7 @@ superheat(gosim,
 
 ## Taxonomic tree:
 Visualizing hierarchical information 
+
 ### Metacoder [*Metacoder*](https://grunwaldlab.github.io/metacoder_documentation/vignettes--02--plotting_taxonomic_data.html). 
 
 Let's subset the virus lineage annotation:
