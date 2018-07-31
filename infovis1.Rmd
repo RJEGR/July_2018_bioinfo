@@ -2,15 +2,16 @@
 title: "Data Visualization"
 author: "Ricardo gore"
 date: "Thuesday 7/31/2018"
-output: html_document
-output_dir: "docs"
+output:
+  html_document: default
+output_dir: ./docs
 ---
 
 ```{r echo = FALSE, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-Please, read my outlines for the data visualization course in the the follow README file [here](https://github.com/RJEGR/July_2018_bioinfo) and deep in the knowlege of this advantage.
+Please, read my outlines for the data visualization course in the the follow  [README file (here)](https://github.com/RJEGR/July_2018_bioinfo) and delves into learning about data visualization.
 
 ## Preface
 
@@ -24,6 +25,15 @@ We will use high throughput sequencing dataset from a marine non model organism 
 Libraries were preprocessing using the standar parameters within trimmomatic and the assembly were performed with trinity. Differential gene expression and annotation were perform with edgeR (an R package) and Trinotate, respectivily.
 
 The chunk-code here correspond to my workflow used in the lab. Hope you enjoy it!
+
+
+From your work directory clone the follow repo `git clone https://github.com/RJEGR/July_2018_bioinfo.git`. Example:
+
+```{}
+mkdir July_2018_bioinfo
+cd July_2018_bioinfo
+git clone https://github.com/RJEGR/July_2018_bioinfo.git
+```
 
 ## Required package:
 
@@ -41,29 +51,26 @@ The chunk-code here correspond to my workflow used in the lab. Hope you enjoy it
 
 ## Loading input files
 
-First lets 
-
 ```{r echo = TRUE}
 dir <- c("/Users/cigom/Documents/GitHub/July_2018_bioinfo/infile/")
-setwd(dir)
-# x <- read.table(paste0(dir,"diffExpr.P1e-2_C1.matrix"))
+# setwd(dir)
+x <- read.table(paste0(dir,"diffExpr.P1e-2_C1.matrix_control"))
 ```
 
 And read the input file; then let's make a `head(x)` from the file:
 
 ```{r echo = FALSE, results='asis'}
-x <- read.table(paste0(dir,"diffExpr.P1e-2_C1.matrix2"))
 knitr::kable(head(x))
 ```
 
-Let's log2 transform the data
+Let's log2 transform the data. Why to use the log2 transformation of the normalized count table ? (please read an answer on a [researchgate question here](http://lnr.li/WvpQU))
+
 ```{r data, echo = TRUE}
 data = x # restore before doing various data transformations
 data = log2(data+1)
 data = as.matrix(data) # convert to matrix
 data = t(scale(t(data), scale=F)) # Centering rows
 ```
-
 
 ### Heatmap from Differential gene Expression
 Using [superheat](https://rlbarter.github.io/superheat/index.html)
@@ -115,7 +122,6 @@ DE$Sig[(DE$FDR<0.05) & (abs(DE$logFC)>2)] <- "logFC_FDR"
 
 p <- ggplot(DE, aes(x=logFC, y=-log10(PValue))) +
     geom_point(aes(color = Sig)) + theme_classic() +
-    # RColorBrewer::display.brewer.all()
     scale_color_brewer()
 p
 ```
@@ -353,7 +359,7 @@ detach(package:org.Hs.eg.db, unload = TRUE)
 
 From the annotation, lets use the blastx result in order to get the lineage from proteins anntotated.
 
-```{r, echo = FALSE}
+```{r, echo = TRUE}
 split_blast2 <- function (x, hit = "sprot_Top_BLASTX_hit") 
 {
   y <- x[!is.na(get(hit)), .(get(hit), gene_id, transcript_id, 
@@ -387,14 +393,41 @@ blast2 <- summary_blast(blast)
 knitr::kable(head(blast2[order(-blast2$transcripts),]))
 ```
 
+### Color pallete
+Creates nice looking color palettes (discrete).
+```{r}
+library(RColorBrewer)
+# display.brewer.all()
+display.brewer.pal(n = 5, name = 'Set3') # Hexadecimal color specification
+
+```
+
+> Could we color with orange discrete scale the `gosim` object using `superheat`?. superheat could perform this by using the option `heat.pal` option.
+
+```{r, echo = FALSE}
+superheat(gosim,
+          # retain original order of rows/cols
+          pretty.order.rows = TRUE,
+          pretty.order.cols = TRUE,
+          #left.label = "none",
+          bottom.label.text.angle = 90,
+          row.title = "Sample 1",
+          column.title = "Sample 2",
+          bottom.label.text.size = 4,
+          left.label.text.size = 4,
+          heat.pal = brewer.pal(n = 10, name = "Oranges"))
+```
 
 ## Taxonomic tree:
 Visualizing hierarchical information 
 ### Metacoder [*Metacoder*](https://grunwaldlab.github.io/metacoder_documentation/vignettes--02--plotting_taxonomic_data.html). 
 
 Let's subset the virus lineage annotation:
+```{r, echo = TRUE}
+knitr::kable(table(blast$domain))
+```
 
-```{r}
+```{r, echo = TRUE}
 vs <- blast[blast$domain == "Viruses",]
 list <- vs$lineage
 ```
@@ -406,7 +439,6 @@ And plot ...
 library(metacoder)
 library(RColorBrewer)
 obj <- parse_tax_data(vs, class_cols = "lineage", class_sep = ";")
-display.brewer.pal(n = 5, name = 'Set3') # Hexadecimal color specification
 heat_tree(obj, 
           node_label = taxon_names,
           node_size = n_obs,
@@ -428,6 +460,8 @@ heat_tree(obj,
           node_color_axis_label = "Identity")
 ```
 
+
+
 ### [*ggtree*]()
 The ggtree is designed by extending the ggplot2 (Wickham 2009) package. It is based on the grammar of graphics and takes all the good parts of ggplot2. *ggtree* supports several layouts, including rectangular, slanted, circular and fan for phylogram and cladogram, equal_angle and daylight for unrooted layout, time-scaled and two dimentional phylogenies.
 
@@ -436,7 +470,7 @@ The ggtree is designed by extending the ggplot2 (Wickham 2009) package. It is ba
 ```{r, echo = TRUE}
 tbl <- head(vs[order(-vs$identity),], 50)
 tbl <- tbl[!duplicated(tbl$transcript),] # remove duplicates annotations
-write.table(tbl$transcript, file = "virus.list", quote = FALSE, col.names = FALSE, row.names = FALSE)
+write.table(tbl$transcript, file = paste0(dir, "virus.list"), quote = FALSE, col.names = FALSE, row.names = FALSE)
 ```
 
 
@@ -502,8 +536,9 @@ multiplot(t1, t2, ncol=2)
 
 
 ## Final words
-Just enjoy the course!
+### Improve the visualization of libraries quality using *multiqc*. 
 
+See the multiqc_report.html in the infile folder. If you're interested in do this in-lab-plots, please visit the brief [pre-processing step](https://rjegr.github.io/Transcriptomics/markdown/Processing) documentation.
 
 
 <!-- ``` {sh}    -->
