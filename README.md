@@ -58,7 +58,7 @@ Referencia:
 - Steele J., Iliinsky N. (2011), Designing Data Visualizations ; Chapter 1; O'Reilly Media, Inc. ISBN: 9781449314774
 - web: www.udacity.com (2018); Data Visualization and d3.js 
 
-# Seccion 2:
+# Seccion 1 - Tipo de datos:
 
 Hay tres tipos básicos de datos: algo que puedes cuantificar, algo que puedes ordenar y algo que puedes diferenciar. Estos tipos se reducen a tres términos : 
 
@@ -93,7 +93,13 @@ Es importante conocer con qué tipo de datos estamos tratando debido a que los a
 
 Referencia de esta sección:
 
-*Reference: Institute for Digital Research and Education: What is the difference between categorical, ordinal and interval variables?; from: https://stats.idre.ucla.edu/other/mult-pkg/whatstat/what-is-the-difference-between-categorical-ordinal-and-interval-variables/ (accesso Mayo 22, 2018)*
+*Reference: Institute for Digital Research and Education: What is the difference between categorical, ordinal and interval variables?; from: https://stats.idre.ucla.edu/other/mult-pkg/whatstat/what-is-the-difference-between-categorical-ordinal-and-interval-variables/ (accesso Mayo 22, 2018)
+
+
+
+#### Start coding the chunk as the follow R documentation: http://rpubs.com/Ricardogore/408026
+
+Slides from the course here: 
 
 
 
