@@ -57,3 +57,43 @@ Gestalt principles is about perception and reality
 Referencia:
 - Steele J., Iliinsky N. (2011), Designing Data Visualizations ; Chapter 1; O'Reilly Media, Inc. ISBN: 9781449314774
 - web: www.udacity.com (2018); Data Visualization and d3.js 
+
+# Seccion 2:
+
+Hay tres tipos básicos de datos: algo que puedes cuantificar, algo que puedes ordenar y algo que puedes diferenciar. Estos tipos se reducen a tres términos : 
+
+
+
+* *Cuantitativos*: (ie. datos numéricos) - teóricamente con distribución normal -: 
+
+1. Continuos (0.1, 0.3, 0.4 …) ← flotantes,  **Consumo de oxígeno**
+2. Discretos (1, 2, 3, 5, etc...) ← enteros, **Serie de tiempo**
+
+* *Cualitativos*: Datos categóricos que pueda ser comparados:
+
+1. *Nominal*: -Algo que se puede diferencia- Son aquellas variables asignadas a categorías sin la necesidad de tener un ordenamiento definido. Si las variables tienen un ordenamiento claro, entonces esa variable sería una variable ordinal:
+
+   * **The blood type of a person: A, B, AB or O.**
+   * **Género Masculino y femenino**
+   * **El color del cabello de una persona (rubia, morena, etc.)**
+
+2. *Ordinal*: -Algo que se puede ordenar - cualquier dato que pueda ser comparado u ordenado con un ordenamiento definido en las variables:
+
+   * **Estatus económico (bajo, medio, alto)**
+
+   * **Grado académico (bachillerato, Carrera, posgrado, posdoctorado)**
+
+   * > En este ejemplo, podemos ordenar a las personas en el nivel de experiencia educativa, pero el tamaño de la diferencia entre categorías es inconsistente (porque el espaciado entre las categorías uno y dos es más grande que las categorías dos y tres). Si estas categorías estuvieran igualmente espaciadas, entonces la variable sería una variable de intervalo.
+
+3. *Intervalos*: Una variable de intervalo es similar a una variable ordinal, excepto que los intervalos entre los valores de sus variables están equiespaciados.
+
+   * Ingreso anual de tres personas (10K, 15K, 20K dólares).  La segunda persona gana $ 5,000 más que la primera persona y $ 5,000 menos que la tercera persona, y el tamaño de estos intervalos es el mismo
+
+Es importante conocer con qué tipo de datos estamos tratando debido a que los análisis computacionales y estadísticos asumen que las variables tienen un nivel específico de medición. En vista de que se determine el tipo de variable que se tenga será el tipo de análisis que se podrá efectuar. Por ejemplo, no tendría sentido calcular un color de cabello promedio. Un promedio de una variable categórica no tiene mucho sentido porque no hay un orden intrínseco de los niveles de las categorías. 
+
+Referencia de esta sección:
+
+*Reference: Institute for Digital Research and Education: What is the difference between categorical, ordinal and interval variables?; from: https://stats.idre.ucla.edu/other/mult-pkg/whatstat/what-is-the-difference-between-categorical-ordinal-and-interval-variables/ (accesso Mayo 22, 2018)*
+
+
+
