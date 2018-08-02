@@ -45,9 +45,12 @@ git clone https://github.com/RJEGR/July_2018_bioinfo.git
 # devtools::install_github("ropensci/taxa")
 # devtools::install_github("grunwaldlab/metacoder")
 # if (!require("DT")) install.packages('DT')
-# source("https://bioconductor.org/biocLite.R"); biocLite("org.Hs.eg.db"); (~ 74.3 MB)
+# source("https://bioconductor.org/biocLite.R"); biocLite("org.Hs.eg.db"); # (~ 74.3 MB)
 # biocLite("ggtree")
 # biocLite('phyloseq')
+# if(!require(devtools)) install.packages("devtools")
+# devtools::install_github("kassambara/ggpubr")
+# 
 
 ```
 
@@ -254,14 +257,13 @@ print(c)
 
 Implement [*datatable*](https://rstudio.github.io/DT/) to present interactive data-table: from all the available genes/transcripts annotations. The R package `DT` is an R interface to the JavaScript library DataTable. It package use R data objects (matrices or data frames) to display it as tables on HTML pages. This object-class could include filtering, pagination, sorting, and many other features in the tables.
 
-```{r z, echo = FALSE}
+```{r z, echo = TRUE}
 
 z <- data.frame(y2)
 z$pfam <- paste0('<a href="http://pfam.xfam.org/family/', z$pfam, '">', z$pfam, '</a>')
-
 library(DT)
 datatable(z , escape=1, options = list( pageLength = 10 ) )
-#renderDataTable(z , escape=1, options = list( pageLength = 10 ), server = TRUE )
+
 ```
 
 ### Using `trinotateR` to get the Gene Ontology annotation. 
