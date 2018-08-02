@@ -47,6 +47,7 @@ git clone https://github.com/RJEGR/July_2018_bioinfo.git
 # if (!require("DT")) install.packages('DT')
 # source("https://bioconductor.org/biocLite.R"); biocLite("org.Hs.eg.db"); (~ 74.3 MB)
 # biocLite("ggtree")
+# biocLite('phyloseq')
 
 ```
 
@@ -214,7 +215,7 @@ grid_arrange_shared_legend(p,p1,p2, ncol = 3)
 ```
 
 
-## Functional and enrichment annotation
+### Functional and enrichment annotation
 
 After assembly denovo or guided transcriptome is common to map each contig to a reference in order to annotate the potential source of each transcript. In this view, blast2go is the average tool used by users to perform this analysis nevertheles blast2go is a non free tool. In spite of, [Trinotate](https://github.com/Trinotate/Trinotate.github.io/wiki) is a useful free-framework to this purpose. Trinotate makes use of a number of different well referenced methods for functional annotation including homology search to known sequence data (BLAST+/SwissProt), protein domain identification (HMMER/PFAM), protein signal peptide and transmembrane domain prediction (signalP/tmHMM), and leveraging various annotation databases (eggNOG/GO/Kegg databases).
 
@@ -251,7 +252,7 @@ c <- attr(y2, "count")
 print(c)
 ```
 
-Implement [*datatable*](https://rstudio.github.io/DT/) to present interactive data-table: from all the available genes/transcripts annotations.
+Implement [*datatable*](https://rstudio.github.io/DT/) to present interactive data-table: from all the available genes/transcripts annotations. The R package `DT` is an R interface to the JavaScript library DataTable. It package use R data objects (matrices or data frames) to display it as tables on HTML pages. This object-class could include filtering, pagination, sorting, and many other features in the tables.
 
 ```{r z, echo = FALSE}
 
@@ -263,7 +264,7 @@ datatable(z , escape=1, options = list( pageLength = 10 ) )
 #renderDataTable(z , escape=1, options = list( pageLength = 10 ), server = TRUE )
 ```
 
-## Using `trinotateR` to get the Gene Ontology annotation. 
+### Using `trinotateR` to get the Gene Ontology annotation. 
 
 A GO annotation is a statement about the function of a particular gene. Each GO annotation consists of an association between a gene and a GO term. Together, these statements comprise a “snapshot” of current biological knowledge. The GO describes function with respect to three aspects: molecular function (molecular-level activities performed by gene products), cellular component (the locations relative to cellular structures in which a gene product performs a function), and biological process (the larger processes, or ‘biological programs’ accomplished by multiple molecular activities) 
 
@@ -273,7 +274,7 @@ A GO annotation is a statement about the function of a particular gene. Each GO 
 ```{r go, echo = TRUE}
 go <- split_GO(y)
 gos <- summary_GO(go)
-head(gos[order(-gos$transcripts),])
+knitr::kable(head(gos[order(-gos$transcripts),]))
 ```
 
 And also determine the counts
@@ -290,7 +291,8 @@ m <- merge(got, x, suffix = c("transcript"), all=FALSE)
 m <- m[order(m$transcript),c(1,4,5:12)]
 
 library(DT)
-datatable(m , escape=1, options = list( pageLength = 10 ) )
+datatable(m , filter = 'top', escape=1, options = list( pageLength = 10 ), 
+          rownames = FALSE)
 
 ```
 
@@ -328,7 +330,7 @@ CC <- gos[gos$ontology=="cellular_component",]
 BP <- gos[gos$ontology=="biological_process",]
 ```
 
-## Semantic similarity (of GO terms)
+### Semantic similarity (of GO terms)
 
 Determine the similarity of two GO terms based on the annotation statistics of their common ancestor terms by computing semantic similarity among GO terms, sets of GO terms, gene products, and gene clusters, providing different methods than **measure** the information content (IC). To details please read the [Wang's](https://academic.oup.com/bioinformatics/article/26/7/976/213143) paper published in Oxford.
 
@@ -370,7 +372,7 @@ detach(package:org.Hs.eg.db, unload = TRUE)
 <!-- gosim2 <- as.data.frame(gosim) -->
 <!-- db <- rbind(CC[CC$go %in% rownames(gosim2), c(1,3)], CC[CC$go %in% colnames(gosim2), c(1,3)]) -->
 
-## Blast hits annotation
+### Blast hits annotation
 
 From the annotation, lets use the blastx result in order to get the lineage from proteins anntotated using a modified function from trinotateR
 
@@ -408,18 +410,37 @@ blast2 <- summary_blast(blast)
 knitr::kable(head(blast2[order(-blast2$transcripts),]))
 ```
 
-### Color pallete
-Creates nice looking color palettes (discrete).
-```{r}
+> Do you think we can re-annotate with the Gene ontology the Differential Expression data-set (DE object) and display a new annotated volcano plot as in the fist session ?
+
+```{r DEannot, fig.cap = "This is a Volcano plot annotated", fig.align = "center", echo = TRUE}
+DE$transcript <- rownames(DE)
+DEannot <- merge(DE, blast, suffix = c("transcript"), all=FALSE)
+
+
+p1 + geom_text_repel(
+          data = subset(DEannot, -log10(PValue) > 7),
+          aes(label = name),
+          size = 2.5,
+          box.padding = unit(0.2, "lines"),
+          point.padding = unit(0.2, "lines") 
+  )
+```
+
+
+
+### Color palette
+Creates nice looking color palettes (discrete). Visit the follow [cookbook to details](http://www.cookbook-r.com/Graphs/Colors_(ggplot2))
+
+```{r, fig.align = "center", echo = TRUE, out.width='\\textwidth', fig.width = 7, fig.height = 7 }
 library(RColorBrewer)
-# display.brewer.all()
-display.brewer.pal(n = 5, name = 'Set3') # Hexadecimal color specification
+display.brewer.all()
+# display.brewer.pal(n = 5, name = 'Set3') # Hexadecimal color specification
 
 ```
 
 > Could we color with orange discrete scale the `gosim` object using `superheat`?. superheat could perform this by using the option `heat.pal` option.
 
-```{r, echo = FALSE}
+```{r, echo = TRUE, fig.align = "center"}
 superheat(gosim,
           # retain original order of rows/cols
           pretty.order.rows = TRUE,
@@ -430,13 +451,15 @@ superheat(gosim,
           column.title = "Sample 2",
           bottom.label.text.size = 4,
           left.label.text.size = 4,
-          heat.pal = brewer.pal(n = 10, name = "Oranges"))
+          heat.pal = brewer.pal(n = 9, name = "Oranges"))
 ```
 
-## Taxonomic tree:
+### Taxonomic tree:
 Visualizing hierarchical information 
 
-### Metacoder [*Metacoder*](https://grunwaldlab.github.io/metacoder_documentation/vignettes--02--plotting_taxonomic_data.html). 
+### [*Metacoder*](https://grunwaldlab.github.io/metacoder_documentation/vignettes--02--plotting_taxonomic_data.html). 
+
+Metacoder provides an alternative visulization we call heat trees to plot hierarchical information, in special the organism abundance data classified by a taxonomy.
 
 Let's subset the virus lineage annotation:
 ```{r, echo = TRUE}
@@ -468,7 +491,7 @@ Which annotation could be true, let's show the identity ?
 ```{r, out.width='\\textwidth', fig.width = 5, fig.height = 5, fig.align = "center", fig.cap = "Tree example 2; labeling by identity", echo = TRUE}
 heat_tree(obj, 
           edge_label = taxon_names,
-          edge_label_size = 0.1,
+          edge_label_size = 0.5,
           node_color = identity,
           edge_color = "grey",
           node_color_range = brewer.pal(n = 10, name = "Oranges"),
@@ -520,7 +543,7 @@ p <-  ggtree(tree, branch.length='none', layout='circular') + geom_treescale(wid
 
 Modify tips and node geometry
 
-```{r, echo = TRUE, out.width='\\textwidth', fig.width = 10, fig.height = 7, fig.align = "center", fig.cap = "ggtree; using different layouts"}
+```{r, echo = TRUE, fig.align = "center", fig.cap = "ggtree; using different layouts"}
 multiplot(# add node points
         p + geom_nodepoint(),
         # add tip points
@@ -530,7 +553,7 @@ multiplot(# add node points
         ncol=3,labels = LETTERS[1:3])
 ```
 
-Use annotation info to merge within object (ie. tree and dataframe)
+Use annotation information to merge within object (ie. tree and dataframe)
 
 ```{r, echo = TRUE, out.width='\\textwidth', fig.width = 9, fig.height = 6, fig.align = "center", fig.cap = "ggtree; labeling tree based on data-frame" }
 d <- p + geom_nodepoint()
@@ -550,11 +573,190 @@ multiplot(t1, t2, ncol=2)
 
 ```
 
+## Improve your metagenomic visualization with [phyloseq](https://joey711.github.io/phyloseq/install.html)
 
-## Final words
+> This part of the course was cloned from a current version tutorial from [https://joey711.github.io](https://joey711.github.io/phyloseq/import-data.html) and is reproduced to demonstrate the simpleness of this tool
+
+
+```{r otus, echo = TRUE}
+otus = matrix(sample(1:100, 100, replace = TRUE), nrow = 10, ncol = 10)
+rownames(otus) <- paste0("OTU", 1:nrow(otus)) # name the rows with a label of name OTU#
+colnames(otus) <- paste0("Sample", 1:ncol(otus)) # name the columns with a label of name Sample#
+knitr::kable(otus)
+```
+
+Let's make a tax table
+
+```{r taxmat, echo = TRUE}
+taxmat = matrix(sample(letters, 70, replace = TRUE), 
+                nrow = nrow(otus), 
+                ncol = 7)
+rownames(taxmat) <- rownames(otus) # The rownames must match the OTU names (taxa_names) of the otus
+colnames(taxmat) <- c("Domain", "Phylum", "Class", "Order", "Family", "Genus", "Species")
+knitr::kable(taxmat)
+```
+
+Note than both, taxmat and otus, are objects of class matrix
+```{r, echo = TRUE}
+class(taxmat)
+class(otus)
+```
+
+....
+```{r, echo = TRUE}
+library("phyloseq")
+OTU = otu_table(otus, taxa_are_rows = TRUE)
+TAX = tax_table(taxmat)
+physeq = phyloseq(OTU, TAX)
+
+print(physeq)
+```
+
+Let's visualize some barplots:
+```{r, echo = TRUE, out.width='\\textwidth', fig.align = "center", fig.cap = "phyloseq; barplot 1"}
+theme_set( theme_classic())
+bar <- plot_bar(physeq, fill = "Genus") 
+
+# Color with scale_fill_brewer
+
+bar + geom_bar(stat="identity") +
+      scale_fill_brewer(palette="Spectral")
+```
+
+Create random sample data, and add that to the combined dataset. Make sure that the sample names match the sample_names of the otu_table.
+
+```{r, echo = TRUE}
+sampledata = data.frame(
+  Location = sample(LETTERS[1:4], size=nsamples(physeq), replace=TRUE),
+  Depth = sample(50:1000, size=nsamples(physeq), replace=TRUE),
+  row.names=sample_names(physeq),
+  stringsAsFactors=FALSE
+  )
+
+knitr::kable(sampledata)
+
+sampledata <- sample_data(sampledata) # save as phyloseq-object
+
+```
+
+Finally, merge sampledata within phyloseq-object
+
+```{r, echo = TRUE}
+physeq1 = merge_phyloseq(physeq, sampledata)
+print(physeq1)
+```
+
+And improve the plots. Keep the same fill color, and group the samples together by the Location variable (essentially the environment from which the sample was taken and sequenced) described in the `sample_data(phyloseq1)`:
+
+```{r, echo = TRUE, fig.cap = "phyloseq; barplot 2", fig.align  = "center"}
+plot_bar(physeq1, x="Location", fill="Genus") +
+    geom_bar(stat="identity") +
+      scale_fill_brewer(palette="Spectral")
+```
+
+Also we can organize the information according to any factor using facets. Let's use the Location in order to group the plots, this time xlab will be labeled with Family name, and the fill of the bars will be colored by Genus level.
+
+```{r, echo = TRUE, fig.align = "center", fig.cap = "barplot with facet_grid"}
+plot_bar(physeq1, "Family", fill="Genus", facet_grid=~Location) +
+  geom_bar(stat="identity") +
+      scale_fill_brewer(palette="Spectral")
+```
+
+You can improve you barpots as phyloseq authors sugguest [here](https://joey711.github.io/phyloseq/plot_bar-examples.html)
+
+Also we could implement tree information associated to the physeq1 object. Let’s create a random phylogenetic tree with the `ape` package, and add it to your dataset. *Make sure its tip labels match your OTU_table*.
+
+```{r rtree, echo = TRUE}
+library("ape")
+rtree = rtree(ntaxa(physeq1), rooted=TRUE, tip.label=taxa_names(physeq1))
+```
+
+Great, lets merge the tree in the physoleq- object
+
+```{r}
+physeq1 = merge_phyloseq(physeq1, rtree)
+physeq1
+```
+
+Also you can make a denovo phyloseq-object construction from the scratch by: `physeq1 = phyloseq(OTU, TAX, sampledata, rtree)`.
+
+```{r, echo =TRUE, fig.align = "center", fig.cap = "phyloseq; tree with location labels"}
+plot_tree(physeq1, 
+          color="Location", 
+          label.tips="taxa_names", 
+          size="abundance", 
+          ladderize="left", 
+          plot.margin=0.3)
+```
+
+```{r, echo = TRUE, fig.align = "center", fig.cap = "phyloseq; tree with location labels 2"}
+plot_tree(physeq1, 
+          color="Depth", 
+          shape="Location", 
+          label.tips="taxa_names", 
+          ladderize="right", 
+          plot.margin=0.3)
+```
+
+
+### Heatmaps
+
+```{r, echo = TRUE, fig.align = "center", fig.cap = "plot heatmap from phyloseq-objects"}
+plot_heatmap(physeq1)
+```
+Improve the heatmap by adding the taxa names in the ylab and order the xlab by the ecological distance using an ordination method.
+
+```{r, echo = TRUE, fig.align = "center", fig.cap = "plot heatmap from phyloseq-objects using ordination and taxa names"}
+h <- plot_heatmap(physeq1, low="#66CCFF", high="#000033",
+            taxa.label="Family",
+            method = "NMDS", distance = "bray"
+  )
+print(h)
+```
+
+We can use the ggplot2 functions to make a final arragement of the heatmap
+
+```{r, echo = TRUE, fig.align = "center"}
+
+h + facet_grid(Class ~ . + Location, scales = "free", space = "free") 
+```
+
+and dotplot
+
+```{r, echo = TRUE, fig.align = "center"}
+dp <- phyloseq::psmelt(physeq1)
+
+library(ggpubr)
+ggdotchart(dp, x = "Sample", y ="Abundance",
+  ggtheme = theme_bw())
+
+
+```
+
+and
+```{r, echo = TRUE, fig.align = "center" }
+ggdotchart(dp, x = "Sample", y ="Abundance",
+ group = "Location", color = "Domain",
+   palette = "jco",
+   rotate = TRUE,
+   sorting = "descending",
+   ggtheme = theme_bw(),
+   y.text.col = TRUE,
+   dot.size = "Abundance")
+```
+
+
+### Final words
+
 ### Improve the visualization of libraries quality using *multiqc*. 
 
 See the multiqc_report.html in the infile folder. If you're interested in do this in-lab-plots, please visit the brief [pre-processing step](https://rjegr.github.io/Transcriptomics/markdown/Processing) documentation.
+
+This tutorial were performed using the R session:
+
+```{r}
+print(sessionInfo())
+```
 
 
 <!-- ``` {sh}    -->
