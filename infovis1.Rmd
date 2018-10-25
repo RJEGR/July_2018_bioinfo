@@ -265,7 +265,30 @@ library(DT)
 datatable(z , escape=1, options = list( pageLength = 10 ) )
 
 ```
+And also save the dataframe as html file and include extensions buttons
 
+```{r, echo = TRUE}
+# brew install pandoc before saving the html widget
+save <- as.data.frame(z)
+
+widget <- datatable(
+  save,
+  extensions = 'Buttons', options = list(
+    pageLength = 25,  
+    dom = 'Bfrtip',
+    buttons = 
+      list('copy', 'print', list(
+        extend = 'collection',
+        buttons = c('csv', 'excel', 'pdf'),
+        text = 'Download'
+      ))
+    
+  )
+)
+
+htmlwidgets::saveWidget(widget, "coral_assembly_blastx.html")
+
+```
 ### Using `trinotateR` to get the Gene Ontology annotation. 
 
 A GO annotation is a statement about the function of a particular gene. Each GO annotation consists of an association between a gene and a GO term. Together, these statements comprise a “snapshot” of current biological knowledge. The GO describes function with respect to three aspects: molecular function (molecular-level activities performed by gene products), cellular component (the locations relative to cellular structures in which a gene product performs a function), and biological process (the larger processes, or ‘biological programs’ accomplished by multiple molecular activities) 
@@ -428,7 +451,18 @@ p1 + geom_text_repel(
   )
 ```
 
+Finally, lets plot the eggNOG annotations 
 
+```{r, fig.align = "center", echo = TRUE, out.width='\\textwidth', fig.width = 7, fig.height = 7}
+data(cogs)
+download.file("http://eggnogdb.embl.de/download/eggnog_4.5/data/NOG/NOG.annotations.tsv.gz", "NOG.annotations.tsv.gz")
+system("gunzip NOG.annotations.tsv.gz")
+egg <- read.table("NOG.annotations.tsv", sep="\t", stringsAsFactors=FALSE, quote="")
+names(egg) <- c("db", "nog", "proteins", "species", "class", "description")
+
+plot_NOGs(y, "transcript_id")
+
+```
 
 ### Color palette
 Creates nice looking color palettes (discrete). Visit the follow [cookbook to details](http://www.cookbook-r.com/Graphs/Colors_(ggplot2))
