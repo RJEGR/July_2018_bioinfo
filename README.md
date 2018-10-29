@@ -99,7 +99,7 @@ Referencia de esta sección:
 
 # Seccion 2: Start coding as the follow chunks  
 
-* [R documentation here](http://rpubs.com/Ricardogore/408026)
+* [R documentation here](http://rpubs.com/rgomez/433172)
 * Slides from the course here:  [docs](https://github.com/RJEGR/July_2018_bioinfo/tree/master/docs)/**Visualización de datos_intro.pdf**
 
 
