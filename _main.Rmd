@@ -811,3 +811,6 @@ print(sessionInfo())
 <!-- #           value.name= "expression", variable_name = "Name") -->
 <!-- #  -->
 <!-- # colnames(x)[c(3:4)] <- c("Gene", "Expression") -->
+
+<!--chapter:end:infovis1.Rmd-->
+
